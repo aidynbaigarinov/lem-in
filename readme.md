@@ -22,7 +22,7 @@ You need to find the quickest way to get n ants across a colony (composed of roo
    * Some will have rooms that link to themselves, sending your path-search spinning in circles, some will have too many/too few ants, no ##start or ##end, duplicated rooms, links to unknown rooms, rooms with invalid coordinates and a variety of other invalid or poorly-formatted input. In this cases the program will return an error message ERROR: invalid data format.
 
 You must display your results on the standard output in the following format :
-```
+```go
 number_of_ants
 the_rooms
 the_links
@@ -36,7 +36,7 @@ Lx-y Lz-w Lr-o ...
    * The links are defined by "name1-name2" and will usually look like "1-2", "2-5".
 
 Here is an example of this in practice :
-```
+```go
 ##start
 1 23 3
 2 16 7
@@ -114,7 +114,7 @@ Allowed packages
 Usage
 
 Example 1 :
-```
+```go
 student$ ./lem-in test0.txt
 3
 ##start
@@ -147,7 +147,7 @@ L2-0 L3-0
 student$
 ```
 Example 2 :
-```
+```go
 student$ ./lem-in test1.txt
 3
 ##start
@@ -168,7 +168,7 @@ L3-1
 student$
 ```
 Example 3 :
-```
+```go
 student$ ./lem-in test1.txt
 3
 2 5 0
