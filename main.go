@@ -38,38 +38,40 @@ func (r *Room) AddConn(c *Room) {
 	r.Conn = append(r.Conn, c)
 }
 
-// func (g *Graph) Neighbors(id int) []int {
-// 	neighbors := []int{}
-// 	for _, node := range g.nodes {
-// 		for edge := range node.edges {
-// 			if node.id == id {
-// 				neighbors = append(neighbors, edge)
-// 			}
-// 			if edge == id {
-// 				neighbors = append(neighbors, node.id)
-// 			}
-// 		}
-// 	}
-// 	return neighbors
-// }
+type Queue struct {
+	data []*Room
+}
 
-// func (g *Graph) Nodes() []int {
-// 	nodes := make([]int, len(g.nodes))
-// 	for i := range g.nodes {
-// 		nodes[i] = i
-// 	}
-// 	return nodes
-// }
+func NewQueue() *Queue {
+	return &Queue{
+		data: []*Room{},
+	}
+}
 
-// func (g *Graph) Edges() [][3]int {
-// 	edges := make([][3]int, 0, len(g.nodes))
-// 	for i := range g.nodes {
-// 		for k, v := range g.nodes[i].edges {
-// 			edges = append(edges, [3]int{i, k, int(v)})
-// 		}
-// 	}
-// 	return edges
-// }
+func (q *Queue) IsEmpty() bool {
+	return len(q.data) == 0
+}
+
+func (q *Queue) Peek() (*Room, error) {
+	if len(q.data) == 0 {
+		return nil, fmt.Errorf("Queue is Empty")
+	}
+	return q.data[0], nil
+}
+
+func (q *Queue) Enqueue(n *Room) *Queue {
+	q.data = append(q.data, n)
+	return q
+}
+
+func (q *Queue) Dequeue() (*Room, error) {
+	if len(q.data) == 0 {
+		return nil, fmt.Errorf("Queue is Empty")
+	}
+	element := q.data[0]
+	q.data = q.data[1:]
+	return element, nil
+}
 
 func getInstructions(g *Graph) []string {
 	var arr []string
@@ -161,12 +163,55 @@ func isConn(s string) ([]string, bool) {
 	return ret, true
 }
 
+var Visited = make(map[string]bool)
+var Q = NewQueue()
+
+func BFS(g *Graph) bool {
+
+	for _, r := range g.Rooms {
+		if r.start == true {
+			Visited[r.Name] = true
+			Q.Enqueue(r)
+		}
+	}
+
+	for !Q.IsEmpty() {
+		v, err := Q.Dequeue()
+		fmt.Println("v deq: ", v.Name)
+		if err != nil {
+			fmt.Println(err)
+		}
+		if v.end == true {
+			return true
+		}
+		for _, a := range v.Conn {
+			if Visited[a.Name] == false {
+				Visited[a.Name] = true
+				Q.Enqueue(a)
+			}
+		}
+	}
+
+	// if ok := Visited[r.Name]; ok {
+	// 	return false
+	// }
+	// Visited[r.Name] = true
+	// if r.end == true {
+	// 	return true
+	// }
+	// for _, v := range r.Conn {
+	// 	Q.Enqueue(v.Name)
+	// }
+	// return false
+	return false
+}
+
 func main() {
 	graph := New()
 	arr := getInstructions(graph)
 	s := false
 	e := false
-	fmt.Println(arr)
+	// fmt.Println(arr)
 	for _, v := range arr {
 
 		if len(v) == 7 && isStart(v) {
@@ -184,10 +229,13 @@ func main() {
 		}
 	}
 	graph = buildConn(graph, arr)
-	for _, v := range graph.Rooms {
-		fmt.Println("room name: ", v.Name, "start: ", v.start, "end: ", v.end)
-		for _, c := range v.Conn {
-			fmt.Println("  conn name: ", c.Name)
-		}
-	}
+	// for _, v := range graph.Rooms {
+	// 	fmt.Println("room name: ", v.Name, "start: ", v.start, "end: ", v.end)
+	// 	for _, c := range v.Conn {
+	// 		fmt.Println("  conn name: ", c.Name)
+	// 	}
+	// }
+
+	BFS(graph)
+
 }
