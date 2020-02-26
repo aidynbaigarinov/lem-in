@@ -13,10 +13,11 @@ type Graph struct {
 }
 
 type Room struct {
-	Name  string
-	start bool
-	end   bool
-	Conn  []*Room
+	Name   string
+	Parent *Room
+	start  bool
+	end    bool
+	Conn   []*Room
 }
 
 func New() *Graph {
@@ -187,7 +188,9 @@ func BFS(g *Graph) bool {
 		for _, a := range v.Conn {
 			if Visited[a.Name] == false {
 				Visited[a.Name] = true
+				a.Parent = v
 				Q.Enqueue(a)
+				fmt.Println("Parent: ", v.Name, "a: ", a.Name)
 			}
 		}
 	}
