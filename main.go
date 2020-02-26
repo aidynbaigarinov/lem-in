@@ -25,10 +25,12 @@ func New() *Graph {
 	}
 }
 
-func (g *Graph) AddNode(name string) {
+func (g *Graph) AddNode(name string, start, end bool) {
 	g.Rooms = append(g.Rooms, &Room{
-		Name: name,
-		Conn: []*Room{},
+		Name:  name,
+		start: start,
+		end:   end,
+		Conn:  []*Room{},
 	})
 }
 
@@ -89,31 +91,49 @@ func getInstructions(g *Graph) []string {
 	return arr
 }
 
-func buildConn(g *Graph, s string) *Graph {
-	if c, ok := isConn(s); ok {
-		if len(c) > 0 {
-			for _, v := range g.Rooms {
-				if v.Name == c[0] {
-					for _, k := range g.Rooms {
-						if k.Name == c[1] {
-							v.Conn = append(v.Conn, k)
-						}
-					}
+func buildConn(g *Graph, arr []string) *Graph {
+	for _, s := range arr {
+		if len(s) > 0 {
 
-				}
-				if v.Name == c[1] {
-					for _, k := range g.Rooms {
-						if k.Name == c[0] {
-							v.Conn = append(v.Conn, k)
+			if c, ok := isConn(s); ok {
+				if len(c) > 0 {
+					for _, v := range g.Rooms {
+						if v.Name == c[0] {
+							for _, k := range g.Rooms {
+								if k.Name == c[1] {
+									v.Conn = append(v.Conn, k)
+								}
+							}
+
+						}
+						if v.Name == c[1] {
+							for _, k := range g.Rooms {
+								if k.Name == c[0] {
+									v.Conn = append(v.Conn, k)
+								}
+							}
+
 						}
 					}
 
 				}
 			}
-
 		}
 	}
 	return g
+}
+
+func isStart(s string) bool {
+	if s[:2] == "##" && s[2:] == "start" {
+		return true
+	}
+	return false
+}
+func isEnd(s string) bool {
+	if s[:2] == "##" && s[2:] == "end" {
+		return true
+	}
+	return false
 }
 
 func isRoom(s string) (string, bool) {
@@ -144,21 +164,28 @@ func isConn(s string) ([]string, bool) {
 func main() {
 	graph := New()
 	arr := getInstructions(graph)
+	s := false
+	e := false
 	fmt.Println(arr)
 	for _, v := range arr {
+
+		if len(v) == 7 && isStart(v) {
+			s = true
+			continue
+		} else if len(v) == 5 && isEnd(v) {
+			e = true
+			continue
+		}
 		if len(v) > 0 {
 			if r, ok := isRoom(v); ok {
-				graph.AddNode(r)
+				graph.AddNode(r, s, e)
+				s, e = false, false
 			}
 		}
 	}
-	for _, v := range arr {
-		if len(v) > 0 {
-			graph = buildConn(graph, v)
-		}
-	}
+	graph = buildConn(graph, arr)
 	for _, v := range graph.Rooms {
-		fmt.Println("room name: ", v.Name)
+		fmt.Println("room name: ", v.Name, "start: ", v.start, "end: ", v.end)
 		for _, c := range v.Conn {
 			fmt.Println("  conn name: ", c.Name)
 		}
