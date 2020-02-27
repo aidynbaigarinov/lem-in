@@ -164,49 +164,53 @@ func isConn(s string) ([]string, bool) {
 	return ret, true
 }
 
-var Visited = make(map[string]bool)
-var Q = NewQueue()
+func SavePath(r *Room, path []*Room) []*Room {
+	path = append(path, r)
+	// fmt.Println("r ", r.Name, "visited ", visited[r.Name])
+	if r.start != true && r.end != true {
+		visited[r.Name] = true
+	}
 
-func BFS(g *Graph) bool {
+	if r.start == true {
+		return path
+	}
+	return SavePath(r.Parent, path)
+}
 
+var visited = make(map[string]bool)
+
+func BFS(g *Graph) []*Room {
+	var q = NewQueue()
+	path := []*Room{}
 	for _, r := range g.Rooms {
 		if r.start == true {
-			Visited[r.Name] = true
-			Q.Enqueue(r)
+			visited[r.Name] = true
+			q.Enqueue(r)
 		}
 	}
 
-	for !Q.IsEmpty() {
-		v, err := Q.Dequeue()
-		fmt.Println("v deq: ", v.Name)
+	for !q.IsEmpty() {
+		v, err := q.Dequeue()
+		// fmt.Println("v deq: ", v.Name)
 		if err != nil {
 			fmt.Println(err)
 		}
 		if v.end == true {
-			return true
+			for k := range visited {
+				visited[k] = false
+			}
+			return SavePath(v, path)
 		}
 		for _, a := range v.Conn {
-			if Visited[a.Name] == false {
-				Visited[a.Name] = true
+			if visited[a.Name] == false {
+				visited[a.Name] = true
 				a.Parent = v
-				Q.Enqueue(a)
-				fmt.Println("Parent: ", v.Name, "a: ", a.Name)
+				q.Enqueue(a)
+				// fmt.Println("Parent: ", v.Name, "a: ", a.Name)
 			}
 		}
 	}
-
-	// if ok := Visited[r.Name]; ok {
-	// 	return false
-	// }
-	// Visited[r.Name] = true
-	// if r.end == true {
-	// 	return true
-	// }
-	// for _, v := range r.Conn {
-	// 	Q.Enqueue(v.Name)
-	// }
-	// return false
-	return false
+	return nil
 }
 
 func main() {
@@ -238,7 +242,23 @@ func main() {
 	// 		fmt.Println("  conn name: ", c.Name)
 	// 	}
 	// }
-
-	BFS(graph)
-
+	var num int
+	for _, v := range graph.Rooms {
+		if v.start == true {
+			num = len(v.Conn)
+		}
+	}
+	fmt.Println(num)
+	path := make([][]*Room, num)
+	fmt.Println("path", path)
+	for i := range path {
+		path[i] = BFS(graph)
+	}
+	for i, v := range path {
+		fmt.Println("path ", i)
+		for j := len(v) - 1; j >= 0; j-- {
+			fmt.Printf("%s ", v[j].Name)
+		}
+		fmt.Println()
+	}
 }
