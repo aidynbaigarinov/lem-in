@@ -164,17 +164,19 @@ func isConn(s string) ([]string, bool) {
 	return ret, true
 }
 
-func SavePath(r *Room, path []*Room) []*Room {
+var vis []string
+
+func SavePath(r *Room, path []*Room, vis []string) []*Room {
 	path = append(path, r)
 	// fmt.Println("r ", r.Name, "visited ", visited[r.Name])
 	if r.start != true && r.end != true {
-		visited[r.Name] = true
+		vis = append(vis, r.Name)
 	}
 
 	if r.start == true {
 		return path
 	}
-	return SavePath(r.Parent, path)
+	return SavePath(r.Parent, path, vis)
 }
 
 var visited = make(map[string]bool)
@@ -196,10 +198,11 @@ func BFS(g *Graph) []*Room {
 			fmt.Println(err)
 		}
 		if v.end == true {
-			for k := range visited {
-				visited[k] = false
-			}
-			return SavePath(v, path)
+			// for k := range visited {
+			// 	visited[k] = false
+			// }
+
+			return SavePath(v, path, vis)
 		}
 		for _, a := range v.Conn {
 			if visited[a.Name] == false {
@@ -248,11 +251,22 @@ func main() {
 			num = len(v.Conn)
 		}
 	}
-	fmt.Println(num)
+
+	fmt.Println("Num of paths ", num)
 	path := make([][]*Room, num)
-	fmt.Println("path", path)
 	for i := range path {
 		path[i] = BFS(graph)
+		for _, j := range path[i] {
+			if j.start != true && j.end != true {
+				vis = append(vis, j.Name)
+			}
+		}
+		for k := range visited {
+			visited[k] = false
+		}
+		for _, v := range vis {
+			visited[v] = true
+		}
 	}
 	for i, v := range path {
 		fmt.Println("path ", i)
