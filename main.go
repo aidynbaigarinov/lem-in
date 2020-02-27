@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 )
 
 type Graph struct {
@@ -18,6 +19,11 @@ type Room struct {
 	start  bool
 	end    bool
 	Conn   []*Room
+}
+
+type Path struct {
+	antCounter int
+	paths      []*Room
 }
 
 func New() *Graph {
@@ -181,7 +187,7 @@ func SavePath(r *Room, path []*Room, vis []string) []*Room {
 
 var visited = make(map[string]bool)
 
-func BFS(g *Graph) []*Room {
+func BFS(g *Graph) ([]*Room, bool) {
 	var q = NewQueue()
 	path := []*Room{}
 	for _, r := range g.Rooms {
@@ -202,7 +208,8 @@ func BFS(g *Graph) []*Room {
 			// 	visited[k] = false
 			// }
 
-			return SavePath(v, path, vis)
+			path = SavePath(v, path, vis)
+			return path, true
 		}
 		for _, a := range v.Conn {
 			if visited[a.Name] == false {
@@ -213,12 +220,32 @@ func BFS(g *Graph) []*Room {
 			}
 		}
 	}
-	return nil
+	return nil, false
+}
+
+func ant(p []*Path, aN int) {
+	p[0].antCounter++
+	j := 1
+	curr := 0
+	// ant1 -> p[0].paths
+	for i := 2; i <= aN; i++ {
+		if len(p[curr].paths)-1+p[curr].antCounter > len(p[j].paths)-1+p[j].antCounter {
+			p[j].antCounter++
+			fmt.Println("j", p[j].antCounter)
+			// ant[i] -> p[j].paths
+			curr++
+		} else {
+			p[curr].antCounter++
+			fmt.Println("curr", p[curr].antCounter)
+			// ant[i] -> p[curr].paths
+		}
+	}
 }
 
 func main() {
 	graph := New()
 	arr := getInstructions(graph)
+	antsNum, _ := strconv.Atoi(arr[0])
 	s := false
 	e := false
 	// fmt.Println(arr)
@@ -253,10 +280,17 @@ func main() {
 	}
 
 	fmt.Println("Num of paths ", num)
-	path := make([][]*Room, num)
-	for i := range path {
-		path[i] = BFS(graph)
-		for _, j := range path[i] {
+	p := make([]*Path, num)
+	ok := false
+	for i, _ := range p {
+		p[i] = &Path{0, nil}
+	}
+	for i := range p {
+		p[i].paths, ok = BFS(graph)
+		if !ok {
+			continue
+		}
+		for _, j := range p[i].paths {
 			if j.start != true && j.end != true {
 				vis = append(vis, j.Name)
 			}
@@ -268,11 +302,14 @@ func main() {
 			visited[v] = true
 		}
 	}
-	for i, v := range path {
+	for i, v := range p {
 		fmt.Println("path ", i)
-		for j := len(v) - 1; j >= 0; j-- {
-			fmt.Printf("%s ", v[j].Name)
+		for _, j := range v.paths {
+			fmt.Printf(" " + j.Name)
 		}
 		fmt.Println()
 	}
+
+	ant(p, antsNum)
+
 }
