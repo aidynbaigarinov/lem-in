@@ -18,12 +18,21 @@ type Room struct {
 	Parent *Room
 	start  bool
 	end    bool
+	busy   bool
 	Conn   []*Room
 }
 
 type Path struct {
 	antCounter int
-	paths      []*Room
+	ID         int
+	route      []*Room
+}
+
+type Ant struct {
+	ID      int
+	roomNum int
+	finish  bool
+	route   *Path
 }
 
 func New() *Graph {
@@ -59,13 +68,6 @@ func (q *Queue) IsEmpty() bool {
 	return len(q.data) == 0
 }
 
-func (q *Queue) Peek() (*Room, error) {
-	if len(q.data) == 0 {
-		return nil, fmt.Errorf("Queue is Empty")
-	}
-	return q.data[0], nil
-}
-
 func (q *Queue) Enqueue(n *Room) *Queue {
 	q.data = append(q.data, n)
 	return q
@@ -80,6 +82,9 @@ func (q *Queue) Dequeue() (*Room, error) {
 	return element, nil
 }
 
+/*
+* * * Opens the file to get instructions for ant farm * * *
+ */
 func getInstructions(g *Graph) []string {
 	var arr []string
 	a, err := os.Open("example.txt")
@@ -100,28 +105,31 @@ func getInstructions(g *Graph) []string {
 	return arr
 }
 
+/*
+* * * Adds connections between rooms * * *
+ */
 func buildConn(g *Graph, arr []string) *Graph {
+
 	for _, s := range arr {
-		if len(s) > 0 {
 
-			if c, ok := isConn(s); ok {
-				if len(c) > 0 {
-					for _, v := range g.Rooms {
-						if v.Name == c[0] {
-							for _, k := range g.Rooms {
-								if k.Name == c[1] {
-									v.Conn = append(v.Conn, k)
-								}
+		if len(s) > 2 {
+
+			if c, ok := isConn(s); len(c) == 2 && ok {
+				for _, v := range g.Rooms {
+
+					if v.Name == c[0] {
+						for _, k := range g.Rooms {
+							if k.Name == c[1] {
+								v.Conn = append(v.Conn, k)
 							}
-
 						}
-						if v.Name == c[1] {
-							for _, k := range g.Rooms {
-								if k.Name == c[0] {
-									v.Conn = append(v.Conn, k)
-								}
-							}
+					}
 
+					if v.Name == c[1] {
+						for _, k := range g.Rooms {
+							if k.Name == c[0] {
+								v.Conn = append(v.Conn, k)
+							}
 						}
 					}
 
@@ -132,12 +140,19 @@ func buildConn(g *Graph, arr []string) *Graph {
 	return g
 }
 
+/*
+* * * Checks is it a start room * * *
+ */
 func isStart(s string) bool {
 	if s[:2] == "##" && s[2:] == "start" {
 		return true
 	}
 	return false
 }
+
+/*
+* * * Checks is it an end room* * *
+ */
 func isEnd(s string) bool {
 	if s[:2] == "##" && s[2:] == "end" {
 		return true
@@ -145,6 +160,9 @@ func isEnd(s string) bool {
 	return false
 }
 
+/*
+* * * Checks is it a room * * *
+ */
 func isRoom(s string) (string, bool) {
 	if s[0] == '#' || s[0] == 'L' {
 		return "", false
@@ -157,6 +175,9 @@ func isRoom(s string) (string, bool) {
 	return "", false
 }
 
+/*
+* * * Check is it a connection between the rooms & returns the array of rooms* * *
+ */
 func isConn(s string) ([]string, bool) {
 	var ret []string
 	if s[0] == '#' || s[0] == 'L' {
@@ -170,19 +191,20 @@ func isConn(s string) ([]string, bool) {
 	return ret, true
 }
 
-var vis []string
-
-func SavePath(r *Room, path []*Room, vis []string) []*Room {
-	path = append(path, r)
-	// fmt.Println("r ", r.Name, "visited ", visited[r.Name])
+func SavePath(r *Room, path []*Room) []*Room {
+	/*
+	* * * Recursively, through parents, add rooms to the path * * *
+	 */
+	if r.start == true {
+		path = append(path, r)
+		return path
+	}
 	if r.start != true && r.end != true {
 		vis = append(vis, r.Name)
 	}
-
-	if r.start == true {
-		return path
-	}
-	return SavePath(r.Parent, path, vis)
+	path = SavePath(r.Parent, path)
+	path = append(path, r)
+	return path
 }
 
 var visited = make(map[string]bool)
@@ -199,18 +221,19 @@ func BFS(g *Graph) ([]*Room, bool) {
 
 	for !q.IsEmpty() {
 		v, err := q.Dequeue()
-		// fmt.Println("v deq: ", v.Name)
 		if err != nil {
 			fmt.Println(err)
 		}
+		/*
+		* * * Save path * * *
+		 */
 		if v.end == true {
-			// for k := range visited {
-			// 	visited[k] = false
-			// }
-
-			path = SavePath(v, path, vis)
+			path = SavePath(v, path)
 			return path, true
 		}
+		/*
+		* * * Add neighbours rooms to queue * * *
+		 */
 		for _, a := range v.Conn {
 			if visited[a.Name] == false {
 				visited[a.Name] = true
@@ -223,34 +246,102 @@ func BFS(g *Graph) ([]*Room, bool) {
 	return nil, false
 }
 
-func ant(p []*Path, aN int) {
+/*
+* * * Adds connections between rooms * * *
+ */
+func antPath(p []*Path, aN int) {
+	var ants = []Ant{}
+	for i := 0; i < aN; i++ {
+		ants = append(ants, Ant{ID: i + 1})
+	}
+	ants[0].route = p[0]
 	p[0].antCounter++
-	j := 1
-	curr := 0
-	// ant1 -> p[0].paths
-	for i := 2; i <= aN; i++ {
-		if len(p[curr].paths)-1+p[curr].antCounter > len(p[j].paths)-1+p[j].antCounter {
-			p[j].antCounter++
-			fmt.Println("j", p[j].antCounter)
-			// ant[i] -> p[j].paths
-			curr++
-		} else {
-			p[curr].antCounter++
-			fmt.Println("curr", p[curr].antCounter)
-			// ant[i] -> p[curr].paths
+	currPath := 0
+	for i, l := 1, len(ants); i < l; i++ {
+		if currPath == len(p)-1 {
+			currPath = 0
 		}
+		// fmt.Println(currPath)
+		if currPath < len(p)-1 {
+			if (len(p[currPath].route) + p[currPath].antCounter) >
+				(len(p[currPath+1].route) + p[currPath+1].antCounter) {
+				currPath++
+				ants[i].route = p[currPath]
+				p[currPath].antCounter++
+			} else {
+				ants[i].route = p[currPath]
+				p[currPath].antCounter++
+			}
+		}
+	}
+
+	// for _, v := range ants {
+	// 	fmt.Println("ant ID", v.ID)
+	// 	for _, k := range v.route.route {
+	// 		fmt.Printf("%s ", k.Name)
+	// 	}
+	// 	fmt.Println()
+	// }
+	z := len(p[0].route) - 1
+	end := p[0].route[z].Name
+	printResult(ants, len(p), end)
+}
+
+func printResult(a []Ant, l int, end string) {
+	// z := len(a) - l + 1
+	m := make(map[int]int)
+	counter := 0
+	z := 0
+	for z < 10 {
+		for _, v := range a {
+			// v.roomNum = v.roomNum + 1
+			// k := 0
+			ok := false
+			if _, ok = m[v.ID]; !ok {
+				m[v.ID] = 1
+			} else {
+				m[v.ID]++
+
+				// fmt.Println("ant ID", v.ID, "room number", m[v.ID])
+				if v.roomNum < len(v.route.route)-2 && !v.route.route[m[v.ID]].busy {
+					fmt.Printf("L%d-%s ", v.ID, v.route.route[m[v.ID]].Name)
+					v.route.route[m[v.ID]].busy = true
+				} else {
+					v.route.route[m[v.ID]].busy = false
+				}
+				// fmt.Println("name", v.route.route[m[v.ID]].Name)
+				if v.route.route[m[v.ID]].Name == end {
+					counter++
+				}
+			}
+		}
+		fmt.Println()
+		if counter == len(a) {
+			break
+		}
+		z++
 	}
 }
 
+var vis []string
+
 func main() {
 	graph := New()
+	/*
+	* * * Get instructions * * *
+	 */
 	arr := getInstructions(graph)
+	/*
+	* * * Number of ants * * *
+	 */
 	antsNum, _ := strconv.Atoi(arr[0])
 	s := false
 	e := false
 	// fmt.Println(arr)
 	for _, v := range arr {
-
+		/*
+		* * * Look for start & end rooms * * *
+		 */
 		if len(v) == 7 && isStart(v) {
 			s = true
 			continue
@@ -258,6 +349,9 @@ func main() {
 			e = true
 			continue
 		}
+		/*
+		* * * Add Room * * *
+		 */
 		if len(v) > 0 {
 			if r, ok := isRoom(v); ok {
 				graph.AddNode(r, s, e)
@@ -265,13 +359,14 @@ func main() {
 			}
 		}
 	}
+	/*
+	* * * Build connections between rooms * * *
+	 */
 	graph = buildConn(graph, arr)
-	// for _, v := range graph.Rooms {
-	// 	fmt.Println("room name: ", v.Name, "start: ", v.start, "end: ", v.end)
-	// 	for _, c := range v.Conn {
-	// 		fmt.Println("  conn name: ", c.Name)
-	// 	}
-	// }
+
+	/*
+	* * * Get number of initial routes, depending on number of connections from start room * * *
+	 */
 	var num int
 	for _, v := range graph.Rooms {
 		if v.start == true {
@@ -279,18 +374,24 @@ func main() {
 		}
 	}
 
-	fmt.Println("Num of paths ", num)
 	p := make([]*Path, num)
 	ok := false
 	for i, _ := range p {
-		p[i] = &Path{0, nil}
+		p[i] = &Path{0, 1, nil}
 	}
+	/*
+	* * * BFS algo to find paths * * *
+	 */
 	for i := range p {
-		p[i].paths, ok = BFS(graph)
+		p[i].route, ok = BFS(graph)
 		if !ok {
 			continue
 		}
-		for _, j := range p[i].paths {
+		/*
+		* * * If there is a path, make path nodes visited, except start & end * * *
+		 */
+
+		for _, j := range p[i].route {
 			if j.start != true && j.end != true {
 				vis = append(vis, j.Name)
 			}
@@ -302,14 +403,22 @@ func main() {
 			visited[v] = true
 		}
 	}
-	for i, v := range p {
-		fmt.Println("path ", i)
-		for _, j := range v.paths {
-			fmt.Printf(" " + j.Name)
+
+	pathTrue := []*Path{}
+
+	for _, v := range p {
+		if len(v.route) > 0 {
+			pathTrue = append(pathTrue, v)
 		}
-		fmt.Println()
 	}
 
-	ant(p, antsNum)
+	// for i, v := range pathTrue {
+	// 	fmt.Println("path ", i)
+	// 	for _, j := range v.route {
+	// 		fmt.Printf(" " + j.Name)
+	// 	}
+	// 	fmt.Println()
+	// }
 
+	antPath(pathTrue, antsNum)
 }
