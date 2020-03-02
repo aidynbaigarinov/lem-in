@@ -394,6 +394,8 @@ func makePath(g *Graph) []*Path {
 }
 
 func main() {
+	// TODO: refactor code, organize packages, handle errors and invalid inputs
+
 	start := time.Now()
 
 	graph := New()
