@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
 type Graph struct {
@@ -85,11 +86,12 @@ func (q *Queue) Dequeue() (*Room, error) {
 /*
 * * * Opens the file to get instructions for ant farm * * *
  */
-func getInstructions(g *Graph) []string {
+func getInstructions(g *Graph, file string) []string {
 	var arr []string
-	a, err := os.Open("example.txt")
+	a, err := os.Open("maps/" + file)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("There is no such file... :(")
+		os.Exit(0)
 	}
 	defer a.Close()
 
@@ -196,7 +198,7 @@ func SavePath(r *Room, path []*Room) []*Room {
 	* * * Recursively, through parents, add rooms to the path * * *
 	 */
 	if r.start == true {
-		path = append(path, r)
+		// path = append(path, r)
 		return path
 	}
 	if r.start != true && r.end != true {
@@ -246,9 +248,7 @@ func BFS(g *Graph) ([]*Room, bool) {
 	return nil, false
 }
 
-/*
-* * * Adds connections between rooms * * *
- */
+// * Add connections between rooms
 func antPath(p []*Path, aN int) {
 	var ants = []Ant{}
 	for i := 0; i < aN; i++ {
@@ -272,76 +272,68 @@ func antPath(p []*Path, aN int) {
 				ants[i].route = p[currPath]
 				p[currPath].antCounter++
 			}
+		} else {
+			ants[i].route = p[currPath]
 		}
 	}
 
-	// for _, v := range ants {
-	// 	fmt.Println("ant ID", v.ID)
-	// 	for _, k := range v.route.route {
-	// 		fmt.Printf("%s ", k.Name)
-	// 	}
-	// 	fmt.Println()
-	// }
 	z := len(p[0].route) - 1
 	end := p[0].route[z].Name
-	printResult(ants, len(p), end)
+	// fmt.Println("end:", end)
+	printResult(ants, end)
 }
 
-func printResult(a []Ant, l int, end string) {
-	// z := len(a) - l + 1
-	m := make(map[int]int)
-	counter := 0
-	z := 0
-	for z < 10 {
-		for _, v := range a {
-			// v.roomNum = v.roomNum + 1
-			// k := 0
-			ok := false
-			if _, ok = m[v.ID]; !ok {
-				m[v.ID] = 1
-			} else {
-				m[v.ID]++
+func printResult(a []Ant, end string) {
+	// m := make(map[int]bool)
+	for !a[len(a)-1].finish {
+		for i, l := 0, len(a); i < l; i++ {
+			// ok := m[a[i].ID]
+			// if !ok {
+			if !a[i].finish {
+				// fmt.Println(a[i].route)
+				if a[i].route.route[a[i].roomNum].Name == end {
+					fmt.Printf("L%d-%s ", a[i].ID, a[i].route.route[a[i].roomNum].Name)
+					// m[a[i].ID] = true
+					if a[i].roomNum > 0 {
+						a[i].route.route[a[i].roomNum-1].busy = false
+					} else {
+						a[i].route.route[a[i].roomNum].busy = false
+					}
+					a[i].finish = true
 
-				// fmt.Println("ant ID", v.ID, "room number", m[v.ID])
-				if v.roomNum < len(v.route.route)-2 && !v.route.route[m[v.ID]].busy {
-					fmt.Printf("L%d-%s ", v.ID, v.route.route[m[v.ID]].Name)
-					v.route.route[m[v.ID]].busy = true
-				} else {
-					v.route.route[m[v.ID]].busy = false
-				}
-				// fmt.Println("name", v.route.route[m[v.ID]].Name)
-				if v.route.route[m[v.ID]].Name == end {
-					counter++
+				} else if !a[i].route.route[a[i].roomNum].busy {
+					fmt.Printf("L%d-%s ", a[i].ID, a[i].route.route[a[i].roomNum].Name)
+					a[i].route.route[a[i].roomNum].busy = true
+					if a[i].roomNum > 0 {
+						a[i].route.route[a[i].roomNum-1].busy = false
+					}
+					a[i].roomNum++
 				}
 			}
+			// }
 		}
 		fmt.Println()
-		if counter == len(a) {
-			break
-		}
-		z++
 	}
+}
+
+func printInstructions(a []string) {
+	for _, v := range a {
+		fmt.Println(v)
+	}
+	fmt.Println()
 }
 
 var vis []string
 
-func main() {
-	graph := New()
-	/*
-	* * * Get instructions * * *
-	 */
-	arr := getInstructions(graph)
-	/*
-	* * * Number of ants * * *
-	 */
-	antsNum, _ := strconv.Atoi(arr[0])
-	s := false
-	e := false
-	// fmt.Println(arr)
-	for _, v := range arr {
-		/*
-		* * * Look for start & end rooms * * *
-		 */
+func TimeTaken(t time.Time, name string) {
+	elapsed := time.Since(t)
+	log.Printf("\n------------------------------------------------------------------------------\nTIME: %s took %s\n", name, elapsed)
+}
+
+func addRoom(g *Graph, a []string) {
+	s, e := false, false
+	for _, v := range a {
+		// * Look for start & end rooms
 		if len(v) == 7 && isStart(v) {
 			s = true
 			continue
@@ -349,48 +341,36 @@ func main() {
 			e = true
 			continue
 		}
-		/*
-		* * * Add Room * * *
-		 */
+		// * Add Room
 		if len(v) > 0 {
 			if r, ok := isRoom(v); ok {
-				graph.AddNode(r, s, e)
+				g.AddNode(r, s, e)
 				s, e = false, false
 			}
 		}
 	}
-	/*
-	* * * Build connections between rooms * * *
-	 */
-	graph = buildConn(graph, arr)
+}
 
-	/*
-	* * * Get number of initial routes, depending on number of connections from start room * * *
-	 */
+func makePath(g *Graph) []*Path {
+	// * Get number of initial paths
 	var num int
-	for _, v := range graph.Rooms {
+	for _, v := range g.Rooms {
 		if v.start == true {
 			num = len(v.Conn)
 		}
 	}
-
 	p := make([]*Path, num)
 	ok := false
 	for i, _ := range p {
 		p[i] = &Path{0, 1, nil}
 	}
-	/*
-	* * * BFS algo to find paths * * *
-	 */
+
 	for i := range p {
-		p[i].route, ok = BFS(graph)
+		p[i].route, ok = BFS(g)
 		if !ok {
 			continue
 		}
-		/*
-		* * * If there is a path, make path nodes visited, except start & end * * *
-		 */
-
+		// * If there is a path, make path nodes visited, except start & end
 		for _, j := range p[i].route {
 			if j.start != true && j.end != true {
 				vis = append(vis, j.Name)
@@ -403,7 +383,6 @@ func main() {
 			visited[v] = true
 		}
 	}
-
 	pathTrue := []*Path{}
 
 	for _, v := range p {
@@ -411,14 +390,36 @@ func main() {
 			pathTrue = append(pathTrue, v)
 		}
 	}
+	return pathTrue
+}
 
-	// for i, v := range pathTrue {
-	// 	fmt.Println("path ", i)
-	// 	for _, j := range v.route {
-	// 		fmt.Printf(" " + j.Name)
-	// 	}
-	// 	fmt.Println()
-	// }
+func main() {
+	start := time.Now()
 
+	graph := New()
+
+	// * Get a filename
+	farm := os.Args[1:]
+	if len(farm) != 1 {
+		fmt.Println("Please include a filename of an Antfarm")
+		return
+	}
+
+	// * Get instructions
+	arr := getInstructions(graph, farm[0])
+	printInstructions(arr)
+
+	// * Number of ants
+	antsNum, _ := strconv.Atoi(arr[0])
+	addRoom(graph, arr)
+
+	// * Build connections between rooms
+	graph = buildConn(graph, arr)
+
+	// * BFS algo to find paths
+	pathTrue := makePath(graph)
+
+	// * deploy ants!!!
 	antPath(pathTrue, antsNum)
+	TimeTaken(start, "Lem-In")
 }
