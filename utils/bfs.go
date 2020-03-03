@@ -1,7 +1,5 @@
 package utils
 
-import "fmt"
-
 // Implements Breadth First Search on Graph
 func BFS(g *Graph) ([]*Room, bool) {
 	var q = NewQueue()
@@ -16,7 +14,7 @@ func BFS(g *Graph) ([]*Room, bool) {
 	for !q.IsEmpty() {
 		v, err := q.Dequeue()
 		if err != nil {
-			fmt.Println(err)
+			ErrHandler()
 		}
 		// * Save path
 		if v.end == true {
