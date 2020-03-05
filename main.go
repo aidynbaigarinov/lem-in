@@ -37,7 +37,7 @@ func main() {
 
 	// * BFS algo to find paths
 	pathTrue := utils.MakePath(graph)
-	utils.PrintInstructions(arr)
+	// utils.PrintInstructions(arr)
 
 	// * deploy ants!!!
 	utils.AntPath(pathTrue, antsNum)
