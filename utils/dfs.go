@@ -2,47 +2,47 @@ package utils
 
 import "fmt"
 
-var array [][]*Room
-
-// Implements Depth First Search on Graph
-func DFS(g *Graph) []*Path {
-	rooms := []*Room{}
-	for _, r := range g.Rooms {
-		if r.start == true {
-			rec(r, rooms)
-		}
+func Save(r *Room) []*Room {
+	Visited[r.Name] = false
+	if r.start {
+		Visited[r.Name] = false
+		return nil
 	}
-
-	for _, v := range array {
-		fmt.Println("path:")
-		for _, z := range v {
-			fmt.Print("room:", z.Name, " ")
-		}
-		fmt.Println()
-	}
-
-	return nil
+	Save(r.Parent)
+	path = append(path, r)
+	return path
 }
 
-func rec(r *Room, path []*Room) [][]*Room {
+var path []*Room
+
+var pathIndex int
+
+// Implements Depth First Search on Graph
+func DFS(r *Room, Paths []*Path) []*Path {
+	fmt.Println("R:::", r.Name)
+	if r.end {
+		newPath := make([]*Room, len(path))
+		copy(newPath, path)
+		newPath = append(newPath, r)
+		Paths[pathIndex].route = newPath
+		pathIndex++
+		// Visited[r.Name] = false
+		return Paths
+	}
+	if r.start {
+		for k := range Visited {
+			Visited[k] = false
+		}
+	}
 	Visited[r.Name] = true
 	path = append(path, r)
-	if r.end {
-		fmt.Println("end:", r.Name)
-		// path = append(path, r)
-		copy := make([]*Room, len(path))
-		for i := range path {
-			copy[i] = path[i]
-		}
-		array = append(array, path)
-	} else {
-		for _, v := range r.Conn {
-			if !Visited[v.Name] {
-				rec(v, path)
-			}
+	for _, v := range r.Conn {
+		fmt.Println("  V:::", v.Name)
+		ok := Visited[v.Name]
+		if !ok {
+			Paths = DFS(v, Paths)
 		}
 	}
 	path = path[:len(path)-1]
-	Visited[r.Name] = false
-	return array
+	return Paths
 }

@@ -10,11 +10,9 @@ import (
 )
 
 func main() {
-
-	start := time.Now()
+	start := time.Now() // benchmark
 
 	graph := utils.New()
-
 	// * Get a filename
 	farm := os.Args[1:]
 	if len(farm) != 1 {

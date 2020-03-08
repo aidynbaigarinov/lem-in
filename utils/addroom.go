@@ -5,7 +5,7 @@ func AddRoom(g *Graph, a []string) {
 	s, e := false, false
 	for _, v := range a {
 		// * Look for start & end rooms
-		if len(v) == 7 && IsStart(v) {
+		if IsStart(v) {
 			s = true
 			continue
 		} else if len(v) == 5 && IsEnd(v) {

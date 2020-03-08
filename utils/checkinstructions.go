@@ -2,10 +2,7 @@ package utils
 
 // Checks if an argument is a start room
 func IsStart(s string) bool {
-	if s[:2] == "##" && s[2:] == "start" {
-		return true
-	}
-	return false
+	return s == "##start"
 }
 
 // Checks if an argument is an end room
