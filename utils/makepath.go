@@ -1,6 +1,10 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+)
+
+var Paths [][]*Room
 
 // Gets all available path via Breadth First Search (BFS)
 func MakePath(g *Graph) []*Path {
@@ -8,34 +12,37 @@ func MakePath(g *Graph) []*Path {
 	// 1. MakePath(startNode, *Graph)
 
 	// * Get number of initial paths
-	var num int
+	// var num int
 	var start *Room
+	// var end *Room
 	for _, v := range g.Rooms {
-		if v.end {
-			num = len(v.Conn)
-		} else if v.start {
+		if v.start {
 			start = v
 		}
 	}
-	p := make([]*Path, num)
-	// ok := false
-	for i, _ := range p {
-		p[i] = &Path{0, 1, nil}
+	DFS(start)
+	comb := make([]*Path, len(Paths))
+	for i := range comb {
+		comb[i] = &Path{0, 1, nil}
 	}
-	Paths := make([]*Path, 10)
-
-	for i := 0; i < 10; i++ {
-		Paths[i] = &Path{0, 1, nil}
-	}
-
-	DFS(start, Paths)
 	for i, v := range Paths {
-		fmt.Println("PATH", i)
-		for _, k := range v.route {
-			fmt.Printf("ROOM: %s ", k.Name)
+		fmt.Println(len(Paths))
+		comb[i].route = v
+		fmt.Println("I:", i)
+		for _, r := range v {
+			fmt.Printf("%s ", r.Name)
 		}
 		fmt.Println()
 	}
+
+	// DFS(start, Paths)
+	// for i, v := range comb {
+	// 	fmt.Println("PATH", i)
+	// 	for _, k := range v.route {
+	// 		fmt.Printf("ROOM: %s ", k.Name)
+	// 	}
+	// 	fmt.Println()
+	// }
 	// paths := []*Path{}
 	// paths = DFS(g)
 	// for _, v := range paths {
@@ -64,15 +71,16 @@ func MakePath(g *Graph) []*Path {
 	// }
 
 	// * Get only valid paths
-	pathTrue := []*Path{}
-	for _, v := range Paths {
-		if len(v.route) > 0 {
-			pathTrue = append(pathTrue, v)
-		}
-	}
-	if len(pathTrue) == 0 {
-		ErrHandler()
-		// fmt.Println("pe4al'")
-	}
-	return pathTrue
+	// pathTrue := []*Path{}
+	// for _, v := range Paths {
+	// 	if len(v.route) > 0 {
+	// 		pathTrue = append(pathTrue, v)
+	// 	}
+	// }
+	// if len(pathTrue) == 0 {
+	// 	// ErrHandler()
+	// 	fmt.Println("pe4al'")
+	// 	os.Exit(0)
+	// }
+	return comb
 }

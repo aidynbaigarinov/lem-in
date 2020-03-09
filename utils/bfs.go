@@ -1,34 +1,34 @@
 package utils
 
 // Implements Breadth First Search on Graph
-func BFS(g *Graph) ([]*Room, bool) {
+func BFS(start *Room) bool {
 	var q = NewQueue()
-	path := []*Room{}
-	for _, r := range g.Rooms {
-		if r.start == true {
-			Visited[r.Name] = true
-			q.Enqueue(r)
-		}
-	}
+	// path := []*Room{}
+	// for _, r := range g.Rooms {
+	// 	if r.start == true {
+	Visited[start.Name] = true
+	q.Enqueue(start)
+	// 	}
+	// }
 
 	for !q.IsEmpty() {
-		v, err := q.Dequeue()
-		if err != nil {
-			ErrHandler()
-		}
+		v, _ := q.Dequeue()
+		// if err != nil {
+		// 	ErrHandler()
+		// }
 		// * Save path
-		if v.end == true {
-			path = SavePath(v, path)
-			return path, true
+		if v.end {
+			// path = SavePath(v, path)
+			return true
 		}
 		// * Add neighbours rooms to queue
 		for _, a := range v.Conn {
-			if Visited[a.Name] == false {
+			if !Visited[a.Name] {
 				Visited[a.Name] = true
 				a.Parent = v
 				q.Enqueue(a)
 			}
 		}
 	}
-	return nil, false
+	return false
 }
