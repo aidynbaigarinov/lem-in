@@ -12,7 +12,7 @@ func GetInstructions(g *Graph, file string) []string {
 	var arr []string
 	a, err := os.Open("maps/" + file)
 	if err != nil {
-		fmt.Println("There is no such file... :(")
+		fmt.Println("\nThere is no such file... \n\n Please include valid map\n")
 		os.Exit(0)
 	}
 	defer a.Close()

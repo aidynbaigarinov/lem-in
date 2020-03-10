@@ -22,6 +22,7 @@ func MakePath(start *Room, num int) []*Path {
 	sort(Paths)
 	comb := FindComb(Paths)
 	ret := OptimalComb(comb, num)
+	// fmt.Println(ret)
 	allPaths := []*Path{}
 	for _, v := range ret {
 		tmp := &Path{route: v}

@@ -1,7 +1,11 @@
 package utils
 
 // Assign path to the ant
-func AntPath(p []*Path, aN int) {
+func AntPath(p []*Path, aN int, arr []string) {
+	if len(p) < 1 {
+		ErrHandler()
+	}
+	PrintInstructions(arr)
 	var ants = []Ant{}
 	for i := 0; i < aN; i++ {
 		ants = append(ants, Ant{ID: i + 1})

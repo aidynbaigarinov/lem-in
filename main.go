@@ -16,10 +16,8 @@ func main() {
 	// Get a filename
 	farm := os.Args[1:]
 	if len(farm) != 1 {
-		fmt.Println("Please include a filename of an Antfarm")
-		return
+		utils.Usage()
 	}
-
 	// Get instructions
 	arr := utils.GetInstructions(graph, farm[0])
 
@@ -35,10 +33,8 @@ func main() {
 
 	// DFS algorithm to find paths
 	paths := utils.MakePath(start, antsNum)
-	// utils.PrintInstructions(arr)
 
 	// deploy ants!!!
-	utils.AntPath(paths, antsNum)
-	fmt.Println()
-	fmt.Println(time.Now().Sub(startTime))
+	utils.AntPath(paths, antsNum, arr)
+	fmt.Println("\n", time.Now().Sub(startTime))
 }
