@@ -1,58 +1,32 @@
 package utils
 
-import "fmt"
+var Paths [][]*Room
+
+func sort(p [][]*Room) {
+	var (
+		n = len(Paths)
+	)
+	for i := 0; i < n-1; i++ {
+		for j := 0; j < n-i-1; j++ {
+			if len(Paths[j]) > len(Paths[j+1]) {
+				Paths[j], Paths[j+1] = Paths[j+1], Paths[j]
+			}
+		}
+	}
+}
 
 // Gets all available path via Breadth First Search (BFS)
-func MakePath(g *Graph) []*Path {
-	// * Get number of initial paths
-	var num int
-	for _, v := range g.Rooms {
-		if v.start == true {
-			num = len(v.Conn)
-		}
-	}
-	p := make([]*Path, num)
-	// ok := false
-	for i, _ := range p {
-		p[i] = &Path{0, 1, nil}
-	}
-	paths := []*Path{}
-	paths = DFS(g)
-	for _, v := range paths {
-		fmt.Println(v.ID)
-		for _, j := range v.route {
-			fmt.Printf("room:%s\n", j.Name)
-		}
-	}
-	// for i := range p {
-	// 	p[i].route, ok = BFS(g)
-	// 	if !ok {
-	// 		continue
-	// 	}
-	// 	// * If there is a path, make path nodes Visited, except start & end
-	// 	for _, j := range p[i].route {
-	// 		if j.start != true && j.end != true {
-	// 			Vis = append(Vis, j.Name)
-	// 		}
-	// 	}
-	// 	for k := range Visited {
-	// 		Visited[k] = false
-	// 	}
-	// 	for _, v := range Vis {
-	// 		Visited[v] = true
-	// 	}
-	// }
+func MakePath(start *Room, num int) []*Path {
 
-	// * Get only valid paths
-	pathTrue := []*Path{}
-	for _, v := range paths {
-		if len(v.route) > 0 {
-			pathTrue = append(pathTrue, v)
-		}
+	DFS(start)
+	sort(Paths)
+	comb := FindComb(Paths)
+	ret := OptimalComb(comb, num)
+	// fmt.Println(ret)
+	allPaths := []*Path{}
+	for _, v := range ret {
+		tmp := &Path{route: v}
+		allPaths = append(allPaths, tmp)
 	}
-	if len(pathTrue) == 0 {
-		// ErrHandler()
-		fmt.Println("pe4al'")
-	}
-	return pathTrue
+	return allPaths
 }

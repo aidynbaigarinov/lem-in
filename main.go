@@ -10,36 +10,31 @@ import (
 )
 
 func main() {
-
-	start := time.Now()
+	startTime := time.Now() // benchmark
 
 	graph := utils.New()
-
-	// * Get a filename
+	// Get a filename
 	farm := os.Args[1:]
 	if len(farm) != 1 {
-		fmt.Println("Please include a filename of an Antfarm")
-		return
+		utils.Usage()
 	}
-
-	// * Get instructions
+	// Get instructions
 	arr := utils.GetInstructions(graph, farm[0])
 
-	// * Number of ants
+	// Number of ants
 	antsNum, err := strconv.Atoi(arr[0])
 	if err != nil || antsNum <= 0 {
 		utils.ErrHandler()
 	}
 	utils.AddRoom(graph, arr)
 
-	// * Build connections between rooms
-	graph = utils.BuildConn(graph, arr)
+	// Build connections between rooms
+	start, graph := utils.BuildConn(graph, arr)
 
-	// * BFS algo to find paths
-	pathTrue := utils.MakePath(graph)
-	// utils.PrintInstructions(arr)
+	// DFS algorithm to find paths
+	paths := utils.MakePath(start, antsNum)
 
-	// * deploy ants!!!
-	utils.AntPath(pathTrue, antsNum)
-	utils.TimeTaken(start, "Lem-In")
+	// deploy ants!!!
+	utils.AntPath(paths, antsNum, arr)
+	fmt.Println("\n", time.Now().Sub(startTime))
 }

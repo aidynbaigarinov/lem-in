@@ -1,10 +1,7 @@
 package utils
 
 // Global visited variable
-var Visited = make(map[string]bool)
-
-// variable after the path is found
-var Vis []string
+var Been []*Room
 
 // New graph
 type Graph struct {
