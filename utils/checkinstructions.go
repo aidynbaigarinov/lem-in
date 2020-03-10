@@ -7,10 +7,7 @@ func IsStart(s string) bool {
 
 // Checks if an argument is an end room
 func IsEnd(s string) bool {
-	if s[:2] == "##" && s[2:] == "end" {
-		return true
-	}
-	return false
+	return s == "##end"
 }
 
 // Check if an argument is a valid room

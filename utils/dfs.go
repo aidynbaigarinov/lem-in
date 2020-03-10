@@ -1,11 +1,7 @@
 package utils
 
-var been []*Room
-
-var pathIndex int
-
 func beenThere(v *Room) bool {
-	for _, s := range been {
+	for _, s := range Been {
 		if s == v {
 			return true
 		}
@@ -16,19 +12,19 @@ func beenThere(v *Room) bool {
 // Implements Depth First Search on Graph
 func DFS(r *Room) {
 	if r.end {
-		newPath := make([]*Room, len(been))
-		copy(newPath, been)
+		newPath := make([]*Room, len(Been))
+		copy(newPath, Been)
 		newPath = append(newPath, r)
+		newPath = newPath[1:]
 		Paths = append(Paths, newPath)
 		return
 	}
-	been = append(been, r)
+	Been = append(Been, r)
 	for _, v := range r.Conn {
 		if !beenThere(v) {
 			DFS(v)
 		}
 	}
-	been = been[:len(been)-1]
-	Visited[r.Name] = false
+	Been = Been[:len(Been)-1]
 	return
 }

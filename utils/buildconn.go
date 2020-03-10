@@ -1,7 +1,8 @@
 package utils
 
 // Add connections between rooms
-func BuildConn(g *Graph, arr []string) *Graph {
+func BuildConn(g *Graph, arr []string) (*Room, *Graph) {
+	var start *Room
 
 	for _, s := range arr {
 
@@ -10,7 +11,9 @@ func BuildConn(g *Graph, arr []string) *Graph {
 		}
 		if c, ok := IsConn(s); len(c) == 2 && ok {
 			for _, v := range g.Rooms {
-
+				if v.start {
+					start = v
+				}
 				if v.Name == c[0] {
 					for _, k := range g.Rooms {
 						if k.Name == c[1] {
@@ -31,5 +34,5 @@ func BuildConn(g *Graph, arr []string) *Graph {
 
 		}
 	}
-	return g
+	return start, g
 }
