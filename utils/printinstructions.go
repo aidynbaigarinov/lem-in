@@ -2,7 +2,7 @@ package utils
 
 import "fmt"
 
-// Prints instructions
+// Print instructions
 func PrintInstructions(a []string) {
 	for _, v := range a {
 		fmt.Println(v)

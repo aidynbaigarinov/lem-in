@@ -25,14 +25,12 @@ func intersectInside(m []*Room, comb [][]*Room) bool {
 	return false
 }
 
-var Ret [][][]*Room
-
+// Find all possible combinations not intersecting paths
 func FindComb(p [][]*Room) [][][]*Room {
 	for i := 0; i < len(p); i++ {
 		var comb [][]*Room
 		comb = append(comb, p[i])
 		for j := i + 1; j < len(p); j++ {
-			// fmt.Println(j+1, p[j])
 			if !intersect(p[i][:len(p[i])-1], p[j][:len(p[j])-1]) &&
 				!intersectInside(p[j][:len(p[j])-1], comb) {
 				comb = append(comb, p[j])

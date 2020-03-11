@@ -32,3 +32,7 @@ type Ant struct {
 	finish  bool
 	route   *Path
 }
+
+var Ret [][][]*Room
+
+var Paths [][]*Room

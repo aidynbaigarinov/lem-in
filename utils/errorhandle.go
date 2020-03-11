@@ -5,7 +5,8 @@ import (
 	"os"
 )
 
+// Handles invalid data format error
 func ErrHandler() {
-	fmt.Println("ERROR: invalid data format")
+	fmt.Println("\nERROR: invalid data format\n")
 	os.Exit(0)
 }

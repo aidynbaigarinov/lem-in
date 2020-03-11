@@ -1,5 +1,7 @@
 package utils
 
+// Find the optimal combinations with least steps,
+// depending on number of ants
 func OptimalComb(c [][][]*Room, num int) [][]*Room {
 	m := make(map[int][][]*Room)
 	var ret [][]*Room
@@ -8,7 +10,6 @@ func OptimalComb(c [][][]*Room, num int) [][]*Room {
 		min := len(comb[0])
 		max := len(comb[len(comb)-1])
 		numPath := len(comb)
-		// area := numPath * max
 		areaEmpty := 0
 		for _, p := range comb {
 

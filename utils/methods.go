@@ -1,7 +1,5 @@
 package utils
 
-import "fmt"
-
 // Returns new graph
 func New() *Graph {
 	return &Graph{
@@ -22,37 +20,4 @@ func (g *Graph) AddNode(name string, start, end bool) {
 // Room method to add connection
 func (r *Room) AddConn(c *Room) {
 	r.Conn = append(r.Conn, c)
-}
-
-// New queue
-type Queue struct {
-	data []*Room
-}
-
-// Make new queue
-func NewQueue() *Queue {
-	return &Queue{
-		data: []*Room{},
-	}
-}
-
-// Check is a queue empty
-func (q *Queue) IsEmpty() bool {
-	return len(q.data) == 0
-}
-
-// Enqueue method for queue
-func (q *Queue) Enqueue(n *Room) *Queue {
-	q.data = append(q.data, n)
-	return q
-}
-
-// Dequeue method for queue
-func (q *Queue) Dequeue() (*Room, error) {
-	if len(q.data) == 0 {
-		return nil, fmt.Errorf("Queue is Empty")
-	}
-	element := q.data[0]
-	q.data = q.data[1:]
-	return element, nil
 }

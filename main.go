@@ -26,10 +26,14 @@ func main() {
 	if err != nil || antsNum <= 0 {
 		utils.ErrHandler()
 	}
-	utils.AddRoom(graph, arr)
+	// Check instructions
+	aR, aC := utils.Check(arr[1:])
+
+	// Add Rooms
+	utils.AddRoom(graph, aR)
 
 	// Build connections between rooms
-	start, graph := utils.BuildConn(graph, arr)
+	start := utils.BuildConn(graph, aC)
 
 	// DFS algorithm to find paths
 	paths := utils.MakePath(start, antsNum)
